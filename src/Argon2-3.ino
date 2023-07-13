@@ -19,35 +19,27 @@ String string_rssi;
 void scanResultCallback(const BleScanResult *scanResult, void *context);
 
 void setup() {
-  Serial.begin(9600);
-	waitFor(Serial.isConnected, 10000);
 
 	BLE.on();
-  Serial.println("scanning");
+	//BLE.setAdvertisingInterval(20);
+
 }
 
 void loop() {
+	rssi = 0;
+	BLE.scan(scanResultCallback, NULL);
 
-	if (millis() - lastScan >= 500) {
-		lastScan = millis();
+	if (rssi) {
 
-		rssi = 0;
-		BLE.scan(scanResultCallback, NULL);
-
-		if (rssi) {
-
-			char buf[32];
-			snprintf(buf, sizeof(buf), "%d", rssi);
-			Serial.println(buf);
-			if (client.isConnected()) {
-				client.loop();
-				string_rssi = String(rssi);
-				client.publish("BAR/argon2/RSSI", string_rssi);
-			} else {
-				client.connect(System.deviceID());
-			}
+		if (client.isConnected()) {
+			client.loop();
+			string_rssi = String(rssi);
+			client.publish("BAR/argon3/RSSI", string_rssi);
+		} else {
+			client.connect(System.deviceID());
 		}
 	}
+	
 }
 
 
